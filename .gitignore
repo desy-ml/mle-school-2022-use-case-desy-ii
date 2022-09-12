@@ -315,9 +315,9 @@ $RECYCLE.BIN/
 
 # Graphics
 *.eps
-*.jpeg
-*.jpg
-#*.pdf
+# *.jpeg
+# *.jpg
+# *.pdf
 *.ps
 
 # Output data
