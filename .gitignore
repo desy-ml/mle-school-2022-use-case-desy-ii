@@ -324,3 +324,6 @@ $RECYCLE.BIN/
 # this is stored in GitLab as artifact
 *.hdf5
 *.h5
+
+# VSCode
+.vscode
