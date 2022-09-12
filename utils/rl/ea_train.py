@@ -2,6 +2,7 @@
 
 
 from functools import partial
+import pathlib
 
 import cheetah
 import cv2
@@ -15,7 +16,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNormalize
 
 from .ARESlatticeStage3v1_9 import cell as ares_lattice
-from .helpers import FilterAction
+from .utils import FilterAction
 
 
 def main():
@@ -63,8 +64,16 @@ def main():
 
 
 def train(config):
-    run_name = f"ml_workshop"
-    config["wandb_run_name"] = run_name
+    print(f"==> Training agent \"{config['run_name']}\"")
+
+    config["wandb_run_name"] = config["run_name"]
+    run_name = config["run_name"]
+
+    # Fill in defaults for MLE School
+    config["vec_env"] = "subproc"
+    config["incoming_mode"] = "random"
+    config["incoming_values"] = None
+    config["sb3_device"] = "auto"
 
     # Setup environments
     if config["vec_env"] == "dummy":
@@ -73,7 +82,8 @@ def train(config):
         env = SubprocVecEnv([partial(make_env, config) for _ in range(config["n_envs"])])
     else:
         raise ValueError(f"Invalid value \"{config['vec_env']}\" for dummy")
-    eval_env = DummyVecEnv([partial(make_env, config, record_video=True, monitor_filename=f"utils/rl/ares_ea/monitors/0")])
+    pathlib.Path(f"utils/rl/ares_ea/monitors/{config['run_name']}").mkdir(parents=True, exist_ok=True)
+    eval_env = DummyVecEnv([partial(make_env, config, record_video=True, monitor_filename=f"utils/rl/ares_ea/monitors/{config['run_name']}/0")])
 
     if config["normalize_observation"] or config["normalize_reward"]:
         env = VecNormalize(
@@ -98,6 +108,7 @@ def train(config):
         gamma=config["gamma"],
         n_steps=config["n_steps"],
         batch_size=config["batch_size"],
+        verbose=0,
     )
 
     model.learn(
@@ -384,8 +395,16 @@ class ARESEA(gym.Env):
         reward = float(reward)
 
         # Put together info
+        err_mu_x = abs(cb[0] - tb[0])
+        err_sigma_x = abs(cb[1] - tb[1])
+        err_mu_y = abs(cb[2] - tb[2])
+        err_sigma_y = abs(cb[3] - tb[3])
+        mae_focus = (err_sigma_x + err_sigma_y) / 2
+        mae_all = (err_mu_x + err_sigma_x + err_mu_y + err_sigma_y) / 4
         info = {
             "binning": self.get_binning(),
+            "mae_focus": mae_focus,
+            "mae_all": mae_all,
             "mu_x_reward": mu_x_reward,
             "mu_y_reward": mu_y_reward,
             "on_screen_reward": on_screen_reward,
