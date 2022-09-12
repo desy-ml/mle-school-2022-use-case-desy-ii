@@ -28,3 +28,19 @@ jupyter lab
 ```
 
 You are now ready to run the notebooks! 🎉
+
+
+## Troubleshooting
+
+### git not found
+
+It may be that you cannot clone the repository to your local machine because git is not installed. In that case, instead of using git, simply visit the [repository home page](https://github.com/desy-ml/mle-school-2022-use-case-desy-ii), click the green *Code* button and select *Download ZIP*.
+
+### Encountered error while trying to install package. box2d-py
+
+You might encounter this error on a Linux distribution that does not come with *gcc* installed by default (such as Ubuntu). Run the following commands to fix, then re-run the command to create the environment.
+
+```bash
+sudo apt install build-essential
+conda env remove --name use-case-desy-ii
+```
