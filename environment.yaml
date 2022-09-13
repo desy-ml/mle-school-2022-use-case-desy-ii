@@ -22,5 +22,6 @@ dependencies:
     - numexpr
     - numpy
     - pandas
+    - pyyaml
     - stable-baselines3
     - torch
